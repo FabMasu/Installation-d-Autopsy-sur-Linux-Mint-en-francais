@@ -3,7 +3,7 @@
 # Script d'installation du logiciel forensique Autopsy pour le système d'exploitation GNU-Linux.
 # Ce script fonctionne pour les distributions de type Debian (Ubuntu, Mint, ...)
 # Testé sur Linux Mint 21.1 et Autopsy 4.20.0 ave Sleuthkit 4.12.0-1
-# Mis en place par Fabrice MASURIER.
+# Mis en place par Fabrice MASURIER avec l'aide de Nicolas CANOVA (le testeur).
 
 echo "Installation du logiciel Autopsy sur un ordinateur doté d'un système linux X64"
 echo "Installation des divers composants"
@@ -13,6 +13,9 @@ alias Bureau='Desktop';
 echo "Vos dossiers n'ont pas été francisés, Votre dossier Bureau est DESKTOP!";
 else echo "Vos dossiers ont été francisés Vous avez un dossier 'Bureau'.";
 fi
+read -p "Quelle est la dernière version de SleuthKit? Ne donnez que le numéro de version sans le '-1' à la fin : " versionSleuthKit
+read -p "Quelle est la dernière version d'Autopsy? Ne donnez, là aussi, que le numéro de version : " versionAutopsy
+clear
 
 echo "Préparation des dépôts pour l'installation..."
 sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
@@ -30,6 +33,10 @@ sudo apt update && \
         libgstreamer1.0-0 gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
         gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x \
         gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio
+clear
+echo "Installation de Netbeans"
+flatpak -y install netbeans
+clear
 
 if [[ $? -ne 0 ]]; then
     echo "Echec de l'installation des dependences." >>/dev/stderr
@@ -57,10 +64,16 @@ else echo "Installation de bellsoft Java 8..."
     fi
 fi
 clear
+sudo updatedb
 
-echo "Prérequis d'Autopsy installés."
-echo "Java path at /usr/lib/jvm/bellsoft-java8-full-amd64: "
-ls /usr/lib/jvm/bellsoft-java8-full-amd64
+echo "Installation du Runtime..."
+sudo apt-get install bellsoft-java8-runtime-full
+#echo "Prérequis d'Autopsy installés."
+#echo "Java path at /usr/lib/jvm/bellsoft-java8-full-amd64: "
+export JAVA_HOME=”/usr/lib/jvm/bellsoft-java8-full-amd64″
+export JDK_HOME=”${JAVA_HOME}”
+export PATH=”${JAVA_HOME}/bin:${PATH}”
+sudo echo "JAVA_HOME='/usr/lib/jvm/bellsoft-java8-full-amd64'" >> .bashrc
 
 workingdir=`pwd`
 repauto=/home/$USER/Autopsy
@@ -75,24 +88,19 @@ else
 fi
 clear
 
-read -p "Quelle est la dernière version de SleuthKit? Ne donnez que le numéro de version sans le '-1' à la fin : " versionSleuthKit
-read -p "Quelle est la dernière version d'Autopsy? Ne donnez, là aussi, que le numéro de version : " versionAutopsy
-clear
-
 testsk=/usr/share/java/sleuthkit-$versionSleuthKit.jar
 if [ -e $testsk ] 
 then
     echo "La bonne version de Sleuthkit est déjà installée!"
     sleep 5
 else 
-    #sudo dpkg --configure -a
+    sudo dpkg --configure -a
     echo "Installation de SleuthKit : "    
     cd /home/$USER/Autopsy 
     wget -q --show-progress "https://github.com/sleuthkit/sleuthkit/releases/download/sleuthkit-"$versionSleuthKit"/sleuthkit-java_"$versionSleuthKit"-1_amd64.deb" /home/$USER/Autopsy
     sleep 5
-    sudo apt-get install -f
     sudo dpkg -i /home/$USER/Autopsy/sleuthkit-java_$versionSleuthKit-1_amd64.deb
-    sudo apt-get install -f
+    sudo apt-get -y install -f
    sleep 5
 fi
 clear
@@ -109,17 +117,17 @@ else
     wget -q --show-progress "https://github.com/sleuthkit/autopsy/releases/download/autopsy-$versionAutopsy/autopsy-$versionAutopsy.zip" /home/$USER/Autopsy
     cd /home/$USER/Autopsy
     unzip autopsy-$versionAutopsy.zip
+    echo "jdkhome=/usr/lib/jvm/bellsoft-java8-full-amd64" >> ~/Autopsy/autopsy-$versionAutopsy/etc/autopsy.conf
+    echo "JAVA_HOME=/usr/lib/jvm/bellsoft-java8-full-amd64" >> ~/Autopsy/autopsy-$versionAutopsy/etc/autopsy.conf
     echo "JDK=/usr/lib/jvm/bellsoft-java8-full-amd64" >> ~/Autopsy/autopsy-$versionAutopsy/etc/autopsy.conf
-
-
-    # Installation 
     
+    # Installation 
+    jdkhome=$JAVA_PATH        
     chown -R $(whoami)
     cd /home/$USER/Autopsy/autopsy-$versionAutopsy
     chmod u+x unix_setup.sh 
-    bash unix_setup.sh 
+    bash ./unix_setup.sh -j /usr/lib/jvm/bellsoft-java8-full-amd64
     
-        
     # Création de l'icone de démarrage sur le bureau
     clear    
     cd //home/$USER/Autopsy/autopsy-$versionAutopsy
@@ -147,7 +155,7 @@ Il est vivement conseillé d'utiliser cet outil. Si plus rien ne bouge, faites 2
     echo "si plus rien ne bouge, faites 2X TAB et appuyez sur Entrée."
     sleep 5
     clear
-    echo ok | sh /home/$USER/Autopsy/autopsy-$versionAutopsy/bin/autopsy
+    echo ok | sh /home/$USER/Autopsy/autopsy-$versionAutopsy/bin/autopsy --nosplash
     
 fi
 
