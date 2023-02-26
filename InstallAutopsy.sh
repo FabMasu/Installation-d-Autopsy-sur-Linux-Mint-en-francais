@@ -17,12 +17,24 @@ read -p "Quelle est la dernière version de SleuthKit? Ne donnez que le numéro 
 read -p "Quelle est la dernière version d'Autopsy? Ne donnez, là aussi, que le numéro de version : " versionAutopsy
 clear
 
+# Netoyage de versions residuelles
+
+echo "Nettoyage de versions résiduelles."
+cd /home/$USER
+sudo rm -rf /home/$USER/Autopsy /home/$USER/./autopsy 
+sudo rm -rf /home/$USER/Bureau/Autopsy.desktop
+sudo apt remove -y sleuthkit-java
+
+# Préparation des dépôts
+
 echo "Préparation des dépôts pour l'installation..."
 sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
 if [[ $? -ne 0 ]]; then
     echo "Echec de mise en route des dépôts" >>/dev/stderr
     exit 1
 fi
+
+# Installation des dépendences
 
 echo "Installation des dependences..."
 sudo apt update && \
@@ -32,8 +44,12 @@ sudo apt update && \
         testdisk libafflib-dev libewf-dev libvhdi-dev libvmdk-dev \
         libgstreamer1.0-0 gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
         gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x \
-        gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio
+        gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio flatpak
+    sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 clear
+
+# Installation de Netbeans
+
 echo "Installation de Netbeans"
 flatpak -y install netbeans
 clear
@@ -43,6 +59,7 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
+# Installation de Java
 
 echo "Verification de l'installation de Java"
 sleep 5
@@ -65,15 +82,16 @@ else echo "Installation de bellsoft Java 8..."
 fi
 clear
 sudo updatedb
-
 echo "Installation du Runtime..."
 sudo apt-get install bellsoft-java8-runtime-full
-#echo "Prérequis d'Autopsy installés."
+echo "Prérequis d'Autopsy installés."
 #echo "Java path at /usr/lib/jvm/bellsoft-java8-full-amd64: "
 export JAVA_HOME=”/usr/lib/jvm/bellsoft-java8-full-amd64″
 export JDK_HOME=”${JAVA_HOME}”
 export PATH=”${JAVA_HOME}/bin:${PATH}”
 sudo echo "JAVA_HOME='/usr/lib/jvm/bellsoft-java8-full-amd64'" >> .bashrc
+
+# Installation de Sleuthkit
 
 workingdir=`pwd`
 repauto=/home/$USER/Autopsy
@@ -104,6 +122,8 @@ else
    sleep 5
 fi
 clear
+
+# Installation d'Autopsy
 
 testauto=/home/$USER/Autopsy/autopsy-$versionAutopsy
 if [ -e $testauto ] 
@@ -147,12 +167,12 @@ else
     /bin/chmod 777 /home/$USER/Autopsy/autopsy-$versionAutopsy/icon.ico
     echo "Autopsy va démarrer. Une fois que l'application sera en place, elle aura créé ses fichiers de configuration, 
 vous devrez alors la fermer, mais laisser le terminal continuer à travailler pour l'installation des modules. 
-Lors de la première mise en route, une boîte de dialogue apparait mais est cachée derrière l'image de démarrage. 
+Lors de la première mise en route, une boîte de dialogue apparait. 
 Cette boîte de dialogue demande à l'utilisateur d'utiliser le central repository. 
-Il est vivement conseillé d'utiliser cet outil. Si plus rien ne bouge, faites 2X TAB et appuyez sur Entrée."
+Il est vivement conseillé d'utiliser cet outil."
     sleep 20
     clear
-    echo "si plus rien ne bouge, faites 2X TAB et appuyez sur Entrée."
+    echo "Ne fermez pas le temrinal."
     sleep 5
     clear
     echo ok | sh /home/$USER/Autopsy/autopsy-$versionAutopsy/bin/autopsy --nosplash
@@ -160,6 +180,8 @@ Il est vivement conseillé d'utiliser cet outil. Si plus rien ne bouge, faites 2
 fi
 
 clear
+
+# Installaton des modules
 
 cd /home/$USER/Bureau
 testmaster=/home/$USER/.autopsy/dev/python_modules/Skype.py
@@ -214,6 +236,5 @@ fi
 clear
 echo "L'installation est maintenant terminée. Bonne journée!"
 sleep 10
-
 
 
