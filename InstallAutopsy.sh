@@ -38,7 +38,7 @@ fi
 
 echo "Installation des dependences..."
 sudo apt update && \
-    sudo apt -y install gcc make perl build-essential autoconf libtool automake git zip wget ant \
+    sudo apt -y install build-essential autoconf libtool automake git zip wget ant \
         libde265-dev libheif-dev \
         libpq-dev \
         testdisk libafflib-dev libewf-dev libvhdi-dev libvmdk-dev \
@@ -54,7 +54,7 @@ echo "Installation de Netbeans"
 flatpak -y install netbeans
 clear
 
-if [ $? -ne 0 ]; then
+if [[ $? -ne 0 ]]; then
     echo "Echec de l'installation des dependences." >>/dev/stderr
     exit 1
 fi
@@ -69,22 +69,19 @@ then
     echo "Java 8 est déjà installé!"
      sleep 5
 else echo "Installation de bellsoft Java 8..."
-	echo "Installation de java"
-	echo "Acquisition des clefs de déchiffrement: "
-	wget -q -O - "https://download.bell-sw.com/pki/GPG-KEY-bellsoft" | sudo apt-key add -
-	sleep 5
-	echo "Téléchargement des sources : "
-	echo "deb [arch=amd64] https://apt.bell-sw.com/ stable main" | sudo tee /etc/apt/sources.list.d/bellsoft.list
-	sleep 5
-	echo "Copie depuis le serveur Ubuntu et installation de java 8 ."
-	sudo apt-get update
-	sudo apt-get install bellsoft-java8-full 
+    pushd /usr/src/ &&
+        wget -q -O - https://download.bell-sw.com/pki/GPG-KEY-bellsoft | sudo apt-key add - &&
+        echo "deb [arch=amd64] https://apt.bell-sw.com/ stable main" | sudo tee /etc/apt/sources.list.d/bellsoft.list &&
+        sudo apt update &&
+        sudo apt -y install bellsoft-java8-full &&
+        popd
+    if [[ $? -ne 0 ]]; then
+        echo "Echec de l'installation de bellsoft java 8" >>/dev/stderr
+        exit 1
+    fi
 fi
-sleep 10
 clear
-
-# Java runtime installation
-
+sudo updatedb
 echo "Installation du Runtime..."
 sudo apt-get install bellsoft-java8-runtime-full
 echo "Prérequis d'Autopsy installés."
