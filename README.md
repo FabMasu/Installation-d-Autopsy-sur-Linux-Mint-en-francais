@@ -8,3 +8,4 @@ ex: 4.12.0 pour Sleuthkit et 4.20.0 pour autopsy
 
 Il faut ensuite taper le mot de passe de l'utilisateur et le tour est joué.
 
+Pour Ubuntu il peut être necessaire d'autoriser l'execution du lanceur sur le bureau.
