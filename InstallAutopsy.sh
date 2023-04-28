@@ -54,7 +54,7 @@ echo "Installation de Netbeans"
 flatpak -y install netbeans
 clear
 
-if [ $? -ne 0 ]; then
+if [[ $? -ne 0 ]]; then
     echo "Echec de l'installation des dependences." >>/dev/stderr
     exit 1
 fi
