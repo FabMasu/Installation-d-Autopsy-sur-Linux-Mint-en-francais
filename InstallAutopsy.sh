@@ -1,102 +1,101 @@
 #!/bin/bash
 
-# Script d'installation du logiciel forensique Autopsy pour le système d'exploitation GNU-Linux.
-# Ce script fonctionne pour les distributions de type Debian (Ubuntu, Mint, ...)
-# Testé sur Linux Mint 21.1 et Autopsy 4.20.0 ave Sleuthkit 4.12.0-1
-# Mis en place par Fabrice MASURIER avec l'aide de Nicolas CANOVA (le testeur).
+# Installation script for forensic software Autopsy GNU-Linux OS.
+# This script wroks for Debian type distributions (Ubuntu, Mint, ...)
+# Tested on Linux Mint 21.1 and Autopsy 4.20.0 with Sleuthkit 4.12.0-1
+# By Fabrice MASURIER with the help of Nicolas CANOVA (le testeur).
 
-echo "Installation du logiciel Autopsy sur un ordinateur doté d'un système linux X64"
-echo "Installation des divers composants"
+echo "Installation of Autopsy on a linux X64 computer"
+echo "Installation of dependencies"
 
 if [ -d "/home/Desktop" ];then
 alias Bureau='Desktop';
-echo "Vos dossiers n'ont pas été francisés, Votre dossier Bureau est DESKTOP!";
+echo "Your DESKTOP seems to be the english way!";
 else echo "Vos dossiers ont été francisés Vous avez un dossier 'Bureau'.";
 fi
-read -p "Quelle est la dernière version de SleuthKit? Ne donnez que le numéro de version sans le '-1' à la fin : " versionSleuthKit
-read -p "Quelle est la dernière version d'Autopsy? Ne donnez, là aussi, que le numéro de version : " versionAutopsy
+read -p "What is the last SleuthKit version? Just give the version number without the '-1' at the end (ex:4.12.0) : " versionSleuthKit
+read -p "What is the last Autopsy version? As well, just give the version number ex:4.20.0) : " versionAutopsy
 clear
 
-# Netoyage de versions residuelles
+# removing older versions
 
-echo "Nettoyage de versions résiduelles."
+echo "Removing older versions."
 cd /home/$USER
 sudo rm -rf /home/$USER/Autopsy /home/$USER/./autopsy 
 sudo rm -rf /home/$USER/Bureau/Autopsy.desktop
 sudo apt remove -y sleuthkit-java
 
-# Préparation des dépôts
+# Preparing sources
 
-echo "Préparation des dépôts pour l'installation..."
+echo "Preparing the sources..."
 sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
 if [[ $? -ne 0 ]]; then
-    echo "Echec de mise en route des dépôts" >>/dev/stderr
+    echo "Failling to prepare the sources." >>/dev/stderr
     exit 1
 fi
 
-# Installation des dépendences
+# Prerequistes installation
 
-echo "Installation des dependences..."
+echo "prerequistes installation..."
 sudo apt update && \
-    sudo apt -y install build-essential autoconf libtool automake git zip wget ant \
+    sudo apt -y install \
+        openjdk-17-jdk openjdk-17-jre \
+        build-essential autoconf libtool automake git zip wget ant \
         libde265-dev libheif-dev \
         libpq-dev \
         testdisk libafflib-dev libewf-dev libvhdi-dev libvmdk-dev \
         libgstreamer1.0-0 gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
         gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x \
         gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio flatpak
+if [[ $? -ne 0 ]]; then
+    echo "Failed to install necessary dependencies" >>/dev/stderr
+    exit 1
+fi
     sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+
+
 clear
-
-# Installation de Netbeans
-
-echo "Installation de Netbeans"
+echo "Netbeans installation..."
 flatpak -y install netbeans
 clear
 
 if [[ $? -ne 0 ]]; then
-    echo "Echec de l'installation des dependences." >>/dev/stderr
+    echo "Failling to install prérequistes." >>/dev/stderr
     exit 1
 fi
 
-# Installation de Java
-
-echo "Verification de l'installation de Java"
+# Java installation
+echo "Java 17 installation: "
+update-java-alternatives -l | grep java-1.17
 sleep 5
-testjava=/usr/lib/jvm/bellsoft*
-if [ -e $testjava ] 
-then
-    echo "Java 8 est déjà installé!"
-     sleep 5
-else echo "Installation de bellsoft Java 8..."   
-        wget -q -O - https://download.bell-sw.com/pki/GPG-KEY-bellsoft | sudo apt-key add - &&
-        echo "deb [arch=amd64] https://apt.bell-sw.com/ stable main" | sudo tee /etc/apt/sources.list.d/bellsoft.list &&
-        sudo apt update &&
-        sudo apt -y install bellsoft-java8-full &&
-      
-    if [[ $? -ne 0 ]]; then
-        echo "Echec de l'installation de bellsoft java 8" >>/dev/stderr
-        exit 1
-    fi
-fi
-clear
 
-echo "Installation du Runtime..."
-sudo apt-get install bellsoft-java8-runtime-full
-echo "Prérequis d'Autopsy installés."
-#echo "Java path at /usr/lib/jvm/bellsoft-java8-full-amd64: "
-export JAVA_HOME=”/usr/lib/jvm/bellsoft-java8-full-amd64″
+#echo "Checking for Java..."
+#sleep 5
+#testjava=/usr/local/jdk-17
+#if [ -e $testjava ] 
+#then
+#    echo "Java 17 is already installed!"
+#    exit 1
+#fi
+
+#echo "Prérequis d'Autopsy installés."
+#echo "Java path at /usr/lib/jvm/java-17-openjdk-amd64: "
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 export JDK_HOME=”${JAVA_HOME}”
 export PATH=”${JAVA_HOME}/bin:${PATH}”
-sudo echo "JAVA_HOME='/usr/lib/jvm/bellsoft-java8-full-amd64'" >> .bashrc
+sudo echo "JAVA_HOME='/usr/lib/jvm/java-17-openjdk-amd64'" >> .bashrc
 
-# Installation de Sleuthkit
+
+export PATH=$JAVA_HOME/bin:$PATH
+
+# Sleuthkit installation
 
 workingdir=`pwd`
 repauto=/home/$USER/Autopsy
 if [ -d $repauto ] 
 then
-    echo "Le dossier Autopsy existe déjà!"
+    echo "The Autopsy folder already exists!"
     sleep 5
 else 
     mkdir /home/$USER/Autopsy
@@ -108,11 +107,12 @@ clear
 testsk=/usr/share/java/sleuthkit-$versionSleuthKit.jar
 if [ -e $testsk ] 
 then
-    echo "La bonne version de Sleuthkit est déjà installée!"
+    echo "The same Sleuthkit version is already installed!"
+    echo "Sleuthkit won't be réinstalled!"
     sleep 5
 else 
     sudo dpkg --configure -a
-    echo "Installation de SleuthKit : "    
+    echo "SleuthKit installation : "    
     cd /home/$USER/Autopsy 
     wget -q --show-progress "https://github.com/sleuthkit/sleuthkit/releases/download/sleuthkit-"$versionSleuthKit"/sleuthkit-java_"$versionSleuthKit"-1_amd64.deb" /home/$USER/Autopsy
     sleep 5
@@ -122,37 +122,37 @@ else
 fi
 clear
 
-# Installation d'Autopsy
+# Autopsy installation
 
 testauto=/home/$USER/Autopsy/autopsy-$versionAutopsy
 if [ -e $testauto ] 
 then
-    echo "La bonne version d'Autopsy est déjà installée!" 
-    echo "Autopsy ne sera pas réinstallé!"
+    echo "The same Autopsy version is already installed!" 
+    echo "Autopsy won't be réinstalled!"
     sleep 5
 else 
     cd /home/$USER/Autopsy
-    echo "Installation d'Autopsy : "
+    echo "Autopsy installation : "
     wget -q --show-progress "https://github.com/sleuthkit/autopsy/releases/download/autopsy-$versionAutopsy/autopsy-$versionAutopsy.zip" /home/$USER/Autopsy
     cd /home/$USER/Autopsy
     unzip autopsy-$versionAutopsy.zip
-    echo "jdkhome=/usr/lib/jvm/bellsoft-java8-full-amd64" >> ~/Autopsy/autopsy-$versionAutopsy/etc/autopsy.conf
-    echo "JAVA_HOME=/usr/lib/jvm/bellsoft-java8-full-amd64" >> ~/Autopsy/autopsy-$versionAutopsy/etc/autopsy.conf
-    echo "JDK=/usr/lib/jvm/bellsoft-java8-full-amd64" >> ~/Autopsy/autopsy-$versionAutopsy/etc/autopsy.conf
+    echo "jdkhome=/usr/lib/jvm/java-17-openjdk-amd64" >> ~/Autopsy/autopsy-$versionAutopsy/etc/autopsy.conf
+    echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> ~/Autopsy/autopsy-$versionAutopsy/etc/autopsy.conf
+    echo "JDK=/usr/lib/jvm/java-17-openjdk-amd64" >> ~/Autopsy/autopsy-$versionAutopsy/etc/autopsy.conf
     
     # Installation 
     jdkhome=$JAVA_PATH        
     chown -R $(whoami)
     cd /home/$USER/Autopsy/autopsy-$versionAutopsy
     chmod u+x unix_setup.sh 
-    bash ./unix_setup.sh -j /usr/lib/jvm/bellsoft-java8-full-amd64
+    bash ./unix_setup.sh -j /usr/lib/jvm/java-17-openjdk-amd64 -n autopsy
     
-    # Création de l'icone de démarrage sur le bureau
+    # Icon creation on the desk
     clear    
     cd //home/$USER/Autopsy/autopsy-$versionAutopsy
-    echo "Effacement des fichiers .zip et .deb"
+    echo "Removing .zip et .deb"
     rm /home/$USER/Autopsy/autopsy-$versionAutopsy.zip|rm /home/$USER/Autopsy/sleuthkit-java_$versionSleuthKit-1_amd64.deb
-    echo "Création d'un lien de démarrage et de son icone sur le bureau"
+    echo "Creation of a starting link on the desk"
     /bin/echo "[Desktop Entry]" >/home/$USER/Bureau/Autopsy.desktop
     /bin/echo "Version=$versionAutopsy" >>/home/$USER/Bureau/Autopsy.desktop
     /bin/echo "Type=Application" >>/home/$USER/Bureau/Autopsy.desktop
@@ -164,32 +164,28 @@ else
     /bin/chmod 711 /home/$USER/Bureau/Autopsy.desktop
     /bin/chmod 777 /home/$USER/Autopsy/autopsy-$versionAutopsy/bin/autopsy
     /bin/chmod 777 /home/$USER/Autopsy/autopsy-$versionAutopsy/icon.ico
-    echo "Autopsy va démarrer. Une fois que l'application sera en place, elle aura créé ses fichiers de configuration, 
-vous devrez alors la fermer, mais laisser le terminal continuer à travailler pour l'installation des modules. 
-Lors de la première mise en route, une boîte de dialogue apparait. 
-Cette boîte de dialogue demande à l'utilisateur d'utiliser le central repository. 
-Il est vivement conseillé d'utiliser cet outil."
+    echo "Autopsy will start. Once done, it will create its own configuration folders,
+you could close it, so, but leave the terminal carry on working for modules installation. 
+At start, a dialog will ask you to use the Central repository. You should use it."
     sleep 20
     clear
-    echo "Ne fermez pas le temrinal."
-    sleep 5
-    clear
+    echo "Close the application, do not close the terminal it will close itself"
     echo ok | sh /home/$USER/Autopsy/autopsy-$versionAutopsy/bin/autopsy --nosplash
     
 fi
 
 clear
 
-# Installaton des modules
+# Modules installation
 
 cd /home/$USER/Bureau
 testmaster=/home/$USER/.autopsy/dev/python_modules/Skype.py
 if [ -e $testmaster ] 
 then
-    echo "Le dossier des masters est déjà installé!"
+    echo "Masters folder is already installed!"
     sleep 5
 else 
-    echo "Installation de plugins Python supplémentaires."
+    echo "Python plugins installation."
     wget -q --show-progress "https://github.com/markmckinnon/Autopsy-Plugins/archive/master.zip"
     unzip master.zip
     mv Autopsy-Plugins-master/* /home/$USER/.autopsy/dev/python_modules/
@@ -216,38 +212,25 @@ cd /home/$USER/Bureau
 testmod=/home/$USER/Bureau/ModulesNetBeans/autopsy-ahbm.nbm
 if [ -e $testmod ] 
 then
-    echo "Le dossier des modules netbeans est déjà installé!"
+    echo "Netbeans modules is already instest déjà installé!"
     sleep 5
 else 
     mkdir ModulesNetBeans
     chmod 770 ModulesNetBeans
-    echo "Les modules fabriqués sous NetBeans se trouvent dans un dossier sur le bureau. Pour les installer, dans Autopsy, allez dans l'onglet Tools, plugins, dans la boite qui s'ouvre choisissez modules téléchargés et séléctionnez les paquets du dossier présent sur le bureau. Les paquets seront alors installés."
+    echo "Netbeans module are on the desk. To install them in Autopsy, go to Tools, plugins, and in the open box, choose Downloaded modules and select all the folder packs on the desk. They will be installed."
     sleep 10
     wget https://github.com/sleuthkit/autopsy_addon_modules/raw/master/IngestModules/sdhash/autopsy-ahbm.nbm
     wget https://github.com/sleuthkit/autopsy_addon_modules/raw/master/IngestModules/CopyMove/de-fau-copymoveforgerydetection.nbm
     wget https://github.com/sleuthkit/autopsy_addon_modules/raw/master/IngestModules/VirusTotal/org-sleuthkit-autopsy-modules-virustotalonlinecheck.nbm
-    wget https://github.com/markmckinnon/Autopsy-NBM-Plugins/blob/main/Plugin-Modules/Event_Log_Viewer.nbm
-    wget https://github.com/markmckinnon/Autopsy-NBM-Plugins/blob/main/Plugin-Modules/Prefetch_File_Viewer.nbm
-    wget https://github.com/markmckinnon/Autopsy-NBM-Plugins/blob/main/Plugin-Modules/chainsaw.nbm
-    wget https://github.com/markmckinnon/Autopsy-NBM-Plugins/blob/main/Plugin-Modules/cleappanalyzer.nbm
-    wget https://github.com/markmckinnon/Autopsy-NBM-Plugins/blob/main/Plugin-Modules/lnk_file_viewer.nbm
-    wget https://github.com/markmckinnon/Autopsy-NBM-Plugins/blob/main/Plugin-Modules/recentactivity-macos.v02b.nbm
-    wget https://github.com/markmckinnon/Autopsy-NBM-Plugins/blob/main/Plugin-Modules/rleappanalyzer.nbm   
     mv autopsy-ahbm.nbm /home/$USER/Bureau/ModulesNetBeans/
     mv de-fau-copymoveforgerydetection.nbm /home/$USER/Bureau/ModulesNetBeans/
     mv org-sleuthkit-autopsy-modules-virustotalonlinecheck.nbm /home/$USER/Bureau/ModulesNetBeans/
-    mv Event_Log_Viewer.nbm /home/$USER/Bureau/ModulesNetBeans/
-    mv Prefetch_File_Viewer.nbm /home/$USER/Bureau/ModulesNetBeans/
-    mv chainsaw.nbm /home/$USER/Bureau/ModulesNetBeans/
-    mv cleappanalyzer.nbm /home/$USER/Bureau/ModulesNetBeans/
-    mv lnk_file_viewer.nbm /home/$USER/Bureau/ModulesNetBeans/
-    mv recentactivity-macos.v02b.nbm /home/$USER/Bureau/ModulesNetBeans/
-    mv rleappanalyzer.nbm /home/$USER/Bureau/ModulesNetBeans/   
     rm /home/$USER/Bureau/InstallAutopsy.sh
 fi
 
 clear
-echo "L'installation est maintenant terminée. Bonne journée!"
+echo "Installation is now done. Have a nice day!"
 sleep 10
+
 
 
