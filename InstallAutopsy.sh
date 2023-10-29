@@ -5,21 +5,21 @@
 # Tested on Linux Mint 21.1 and Autopsy 4.20.0 with Sleuthkit 4.12.0-1
 # By Fabrice MASURIER with the help of Nicolas CANOVA (le testeur).
 
-echo "Installation of Autopsy on a linux X64 computer"
-echo "Installation of dependencies"
+echo "Installation d'Autopsy sur un système de type linux X64"
+echo "Installation des dépendences"
 
 if [ -d "/home/Desktop" ];then
 alias Bureau='Desktop';
 echo "Your DESKTOP seems to be the english way!";
 else echo "Vos dossiers ont été francisés Vous avez un dossier 'Bureau'.";
 fi
-read -p "What is the last SleuthKit version? Just give the version number without the '-1' at the end (ex:4.12.0) : " versionSleuthKit
-read -p "What is the last Autopsy version? As well, just give the version number ex:4.20.0) : " versionAutopsy
+read -p "Quelle est la version de Sleuthkit? Donnez juste le numéro de version sans le '-1' à la fin (ex:4.12.0) : " versionSleuthKit
+read -p "Quelle est la version de Autopsy? Ne donnez également que le numéro de version (ex:4.20.0) : " versionAutopsy
 clear
 
 # removing older versions
 
-echo "Removing older versions."
+echo "Retrait des anciennes versions."
 cd /home/$USER
 sudo rm -rf /home/$USER/Autopsy /home/$USER/./autopsy 
 sudo rm -rf /home/$USER/Bureau/Autopsy.desktop
@@ -27,16 +27,16 @@ sudo apt remove -y sleuthkit-java
 
 # Preparing sources
 
-echo "Preparing the sources..."
+echo "Preparation des sources..."
 sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
 if [[ $? -ne 0 ]]; then
-    echo "Failling to prepare the sources." >>/dev/stderr
+    echo "Echec de préparation des sources." >>/dev/stderr
     exit 1
 fi
 
 # Prerequistes installation
 
-echo "prerequistes installation..."
+echo "Installation des prérequis..."
 sudo apt update && \
     sudo apt -y install \
         openjdk-17-jdk openjdk-17-jre \
@@ -48,7 +48,7 @@ sudo apt update && \
         gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x \
         gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio flatpak
 if [[ $? -ne 0 ]]; then
-    echo "Failed to install necessary dependencies" >>/dev/stderr
+    echo "Echec de l'installation des dépendences nécessaires" >>/dev/stderr
     exit 1
 fi
     sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
@@ -56,31 +56,20 @@ fi
 
 
 clear
-echo "Netbeans installation..."
+echo "Installation de Netbeans..."
 flatpak -y install netbeans
 clear
 
 if [[ $? -ne 0 ]]; then
-    echo "Failling to install prérequistes." >>/dev/stderr
+    echo "Echec de l'installation des prérequis." >>/dev/stderr
     exit 1
 fi
 
 # Java installation
-echo "Java 17 installation: "
+echo "Installation de Java 17: "
 update-java-alternatives -l | grep java-1.17
 sleep 5
 
-#echo "Checking for Java..."
-#sleep 5
-#testjava=/usr/local/jdk-17
-#if [ -e $testjava ] 
-#then
-#    echo "Java 17 is already installed!"
-#    exit 1
-#fi
-
-#echo "Prérequis d'Autopsy installés."
-#echo "Java path at /usr/lib/jvm/java-17-openjdk-amd64: "
 export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 export JDK_HOME=”${JAVA_HOME}”
 export PATH=”${JAVA_HOME}/bin:${PATH}”
@@ -89,13 +78,13 @@ sudo echo "JAVA_HOME='/usr/lib/jvm/java-17-openjdk-amd64'" >> .bashrc
 
 export PATH=$JAVA_HOME/bin:$PATH
 
-# Sleuthkit installation
+# Installation de Sleuthkit
 
 workingdir=`pwd`
 repauto=/home/$USER/Autopsy
 if [ -d $repauto ] 
 then
-    echo "The Autopsy folder already exists!"
+    echo "Le dossier Autopsy existe déjà!"
     sleep 5
 else 
     mkdir /home/$USER/Autopsy
@@ -107,8 +96,8 @@ clear
 testsk=/usr/share/java/sleuthkit-$versionSleuthKit.jar
 if [ -e $testsk ] 
 then
-    echo "The same Sleuthkit version is already installed!"
-    echo "Sleuthkit won't be réinstalled!"
+    echo "la même version de Sleuthkit est déjà installée!"
+    echo "Sleuthkit ne sera pas réinstallé!"
     sleep 5
 else 
     sudo dpkg --configure -a
@@ -122,17 +111,17 @@ else
 fi
 clear
 
-# Autopsy installation
+# Installation d'Autopsy 
 
 testauto=/home/$USER/Autopsy/autopsy-$versionAutopsy
 if [ -e $testauto ] 
 then
-    echo "The same Autopsy version is already installed!" 
-    echo "Autopsy won't be réinstalled!"
+    echo "la même version d'Autopsy est déjà installée!" 
+    echo "Autopsy ne sera pas réinstallé!"
     sleep 5
 else 
     cd /home/$USER/Autopsy
-    echo "Autopsy installation : "
+    echo "Installation d'Autopsy : "
     wget -q --show-progress "https://github.com/sleuthkit/autopsy/releases/download/autopsy-$versionAutopsy/autopsy-$versionAutopsy.zip" /home/$USER/Autopsy
     cd /home/$USER/Autopsy
     unzip autopsy-$versionAutopsy.zip
@@ -150,9 +139,9 @@ else
     # Icon creation on the desk
     clear    
     cd //home/$USER/Autopsy/autopsy-$versionAutopsy
-    echo "Removing .zip et .deb"
+    echo "Retrait des .zip et .deb"
     rm /home/$USER/Autopsy/autopsy-$versionAutopsy.zip|rm /home/$USER/Autopsy/sleuthkit-java_$versionSleuthKit-1_amd64.deb
-    echo "Creation of a starting link on the desk"
+    echo "Creation d'un lien et d'une icone sur le bureau"
     /bin/echo "[Desktop Entry]" >/home/$USER/Bureau/Autopsy.desktop
     /bin/echo "Version=$versionAutopsy" >>/home/$USER/Bureau/Autopsy.desktop
     /bin/echo "Type=Application" >>/home/$USER/Bureau/Autopsy.desktop
@@ -164,12 +153,12 @@ else
     /bin/chmod 711 /home/$USER/Bureau/Autopsy.desktop
     /bin/chmod 777 /home/$USER/Autopsy/autopsy-$versionAutopsy/bin/autopsy
     /bin/chmod 777 /home/$USER/Autopsy/autopsy-$versionAutopsy/icon.ico
-    echo "Autopsy will start. Once done, it will create its own configuration folders,
-you could close it, so, but leave the terminal carry on working for modules installation. 
-At start, a dialog will ask you to use the Central repository. You should use it."
+    echo "Autopsy va démarrer. Une fois fait, Il va créer ses propres dossiers de configuration,
+vous pouvez le fermer, mais laissez le terminal continuer, il installera les modules supplémentaires. 
+Au départ, une boîte de dialogue vous demendera d'utiliser le Central repository. Cliquez sur OK."
     sleep 20
     clear
-    echo "Close the application, do not close the terminal it will close itself"
+    echo "Fermez l'application, ne fermez pas le terminal il se fermera tout seul"
     echo ok | sh /home/$USER/Autopsy/autopsy-$versionAutopsy/bin/autopsy --nosplash
     
 fi
@@ -182,10 +171,10 @@ cd /home/$USER/Bureau
 testmaster=/home/$USER/.autopsy/dev/python_modules/Skype.py
 if [ -e $testmaster ] 
 then
-    echo "Masters folder is already installed!"
+    echo "Masters folder est déjà installé!"
     sleep 5
 else 
-    echo "Python plugins installation."
+    echo "Installation des plugins Python."
     wget -q --show-progress "https://github.com/markmckinnon/Autopsy-Plugins/archive/master.zip"
     unzip master.zip
     mv Autopsy-Plugins-master/* /home/$USER/.autopsy/dev/python_modules/
@@ -212,12 +201,12 @@ cd /home/$USER/Bureau
 testmod=/home/$USER/Bureau/ModulesNetBeans/autopsy-ahbm.nbm
 if [ -e $testmod ] 
 then
-    echo "Netbeans modules is already instest déjà installé!"
+    echo "Les modules Netbeans sont déjà installés!"
     sleep 5
 else 
     mkdir ModulesNetBeans
     chmod 770 ModulesNetBeans
-    echo "Netbeans module are on the desk. To install them in Autopsy, go to Tools, plugins, and in the open box, choose Downloaded modules and select all the folder packs on the desk. They will be installed."
+    echo "Les modules Netbeans sont sur le bureau. Pour les installer dans Autopsy, allez dans 'Tools', 'plugins', et dans la boîte de dialogue, choisissez 'Downloaded modules' et selectionnez le dossier sur le bureau. Les modules seront installés."
     sleep 10
     wget https://github.com/sleuthkit/autopsy_addon_modules/raw/master/IngestModules/sdhash/autopsy-ahbm.nbm
     wget https://github.com/sleuthkit/autopsy_addon_modules/raw/master/IngestModules/CopyMove/de-fau-copymoveforgerydetection.nbm
@@ -229,7 +218,7 @@ else
 fi
 
 clear
-echo "Installation is now done. Have a nice day!"
+echo "L'installation est maintenant terminée. Passez une bonne journée!"
 sleep 10
 
 
