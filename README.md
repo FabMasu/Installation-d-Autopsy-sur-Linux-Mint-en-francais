@@ -13,4 +13,5 @@ Sous Debian, ouvrir un terminal, passez en root, selectionnez le dossier sur le 
 sh InstallAutopsy.sh
 le reste sans changement.
 
+Sous Ubuntu, preférez l'installation par Snap.
 
