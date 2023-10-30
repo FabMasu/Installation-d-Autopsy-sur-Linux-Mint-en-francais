@@ -53,8 +53,6 @@ if [[ $? -ne 0 ]]; then
 fi
     sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
-
-
 clear
 echo "Installation de Netbeans..."
 flatpak -y install netbeans
@@ -133,12 +131,13 @@ else
     jdkhome=$JAVA_PATH        
     chown -R $(whoami)
     cd /home/$USER/Autopsy/autopsy-$versionAutopsy
-    chmod u+x unix_setup.sh 
+    chmod u+x unix_setup.sh
     bash ./unix_setup.sh -j /usr/lib/jvm/java-17-openjdk-amd64 -n autopsy
+    chmod 777 -R /home/$USER/Autopsy
     
     # Icon creation on the desk
     clear    
-    cd //home/$USER/Autopsy/autopsy-$versionAutopsy
+    cd /home/$USER/Autopsy/autopsy-$versionAutopsy
     echo "Retrait des .zip et .deb"
     rm /home/$USER/Autopsy/autopsy-$versionAutopsy.zip|rm /home/$USER/Autopsy/sleuthkit-java_$versionSleuthKit-1_amd64.deb
     echo "Creation d'un lien et d'une icone sur le bureau"
@@ -150,9 +149,10 @@ else
     /bin/echo "Exec=sh /home/$USER/Autopsy/autopsy-$versionAutopsy/bin/autopsy" >>/home/$USER/Bureau/Autopsy.desktop
     /bin/echo "Name=AUTOPSY" >>/home/$USER/Bureau/Autopsy.desktop
     /bin/echo "Icon=/home/$USER/Autopsy/autopsy-$versionAutopsy/icon.ico" >>/home/$USER/Bureau/Autopsy.desktop
-    /bin/chmod 711 /home/$USER/Bureau/Autopsy.desktop
+    /bin/chmod 777 /home/$USER/Bureau/Autopsy.desktop
     /bin/chmod 777 /home/$USER/Autopsy/autopsy-$versionAutopsy/bin/autopsy
     /bin/chmod 777 /home/$USER/Autopsy/autopsy-$versionAutopsy/icon.ico
+    chmod 777 /home/$USER/Bureau/Autopsy.desktop
     echo "Autopsy va démarrer. Une fois fait, Il va créer ses propres dossiers de configuration,
 vous pouvez le fermer, mais laissez le terminal continuer, il installera les modules supplémentaires. 
 Au départ, une boîte de dialogue vous demendera d'utiliser le Central repository. Cliquez sur OK."
@@ -179,13 +179,14 @@ else
     unzip master.zip
     mv Autopsy-Plugins-master/* /home/$USER/.autopsy/dev/python_modules/
     mv Custom_Autopsy_Plugins-master/* /home/$USER/.autopsy/dev/python_modules/
+    chmod 777 -R /home/$USER/.autopsy/dev/python_modules/
 
-    wget -q --show-progress https://github.com/sleuthkit/autopsy_addon_modules/blob/master/IngestModules/Chrome_Passwords/chrome_password_identifier/ChromePasswords.py
-    wget -q --show-progress https://github.com/sleuthkit/autopsy_addon_modules/blob/master/IngestModules/GoogleDrive/google_drive/GDrive.py
-    wget -q --show-progress https://github.com/sleuthkit/autopsy_addon_modules/blob/master/IngestModules/IE%20Tiles/ie_tiles/IETiles.py
-    wget -q --show-progress https://github.com/sleuthkit/autopsy_addon_modules/blob/master/IngestModules/iPhone_Backup_Plist_Analyzer/connected_iphone_analyzer/Iphones.py
-    wget -q --show-progress https://github.com/sleuthkit/autopsy_addon_modules/blob/master/IngestModules/Skype/skype_analyzer/Skype.py
-    wget -q --show-progress https://github.com/sleuthkit/autopsy_addon_modules/blob/master/IngestModules/Windows_Communication_App/windows_communication_App/WindowsCommAppFileIngestModule.py
+    wget -q --show-progress https://github.com/sleuthkit/autopsy_addon_modules/blob/master/IngestModules/Chrome_Passwords/chrome_password_identifier/ChromePasswords.py | chmod 777 ChromePasswords.py
+    wget -q --show-progress https://github.com/sleuthkit/autopsy_addon_modules/blob/master/IngestModules/GoogleDrive/google_drive/GDrive.py | chmod 777 GDrive.py
+    wget -q --show-progress https://github.com/sleuthkit/autopsy_addon_modules/blob/master/IngestModules/IE%20Tiles/ie_tiles/IETiles.py | chmod 777 IETiles.py
+    wget -q --show-progress https://github.com/sleuthkit/autopsy_addon_modules/blob/master/IngestModules/iPhone_Backup_Plist_Analyzer/connected_iphone_analyzer/Iphones.py | chmod 777 Iphones.py
+    wget -q --show-progress https://github.com/sleuthkit/autopsy_addon_modules/blob/master/IngestModules/Skype/skype_analyzer/Skype.py | chmod 777 Skype.py
+    wget -q --show-progress https://github.com/sleuthkit/autopsy_addon_modules/blob/master/IngestModules/Windows_Communication_App/windows_communication_App/WindowsCommAppFileIngestModule.py | chmod 777 WindowsCommAppFileIngestModule.py
     
     mv ChromePasswords.py /home/$USER/.autopsy/dev/python_modules/
     mv GDrive.py /home/$USER/.autopsy/dev/python_modules/
@@ -193,6 +194,7 @@ else
     mv Iphones.py /home/$USER/.autopsy/dev/python_modules/
     mv Skype.py /home/$USER/.autopsy/dev/python_modules/
     mv WindowsCommAppFileIngestModule.py /home/$USER/.autopsy/dev/python_modules/
+    chmod 777 -R /home/$USER/.autopsy
     rm -R Autopsy-Plugins-master
     rm -R master.zip
 fi
@@ -205,7 +207,7 @@ then
     sleep 5
 else 
     mkdir ModulesNetBeans
-    chmod 770 ModulesNetBeans
+    chmod 777 ModulesNetBeans
     echo "Les modules Netbeans sont sur le bureau. Pour les installer dans Autopsy, allez dans 'Tools', 'plugins', et dans la boîte de dialogue, choisissez 'Downloaded modules' et selectionnez le dossier sur le bureau. Les modules seront installés."
     sleep 10
     wget https://github.com/sleuthkit/autopsy_addon_modules/raw/master/IngestModules/sdhash/autopsy-ahbm.nbm
@@ -214,6 +216,7 @@ else
     mv autopsy-ahbm.nbm /home/$USER/Bureau/ModulesNetBeans/
     mv de-fau-copymoveforgerydetection.nbm /home/$USER/Bureau/ModulesNetBeans/
     mv org-sleuthkit-autopsy-modules-virustotalonlinecheck.nbm /home/$USER/Bureau/ModulesNetBeans/
+    chmod 777 -R ModulesNetBeans
     rm /home/$USER/Bureau/InstallAutopsy.sh
 fi
 
